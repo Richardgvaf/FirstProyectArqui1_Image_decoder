@@ -3,7 +3,7 @@
 	mov ebx, %1
 	mov ecx, 7777h				; set all permissions
 	int	0x80
-	mov	[%2], eax				; move file descriptor
+	mov	dword[%2], eax				; move file descriptor
 %endmacro
 
 %macro openFile 3				; file_name, open_mode, file_descriptor
@@ -16,7 +16,7 @@
 
 %macro readFile 3				; file_descriptor, where to save, number of bytes
 	mov 	eax, sys_read
-	mov 	eax, [%1]
+	mov 	ebx, [%1]
 	mov 	ecx, %2
 	mov 	edx, %3
 	int		0x80	
@@ -89,7 +89,7 @@
 	add al,[%1]
 	mov [%1],al
 	writeInConsole 	%1,pixel_size
-	;writeInConsole 	33,1
+	writeFile		fd_out, %1, 1
 	jmp %%read_number1
 %%end_read_number:
 %endmacro
@@ -109,19 +109,19 @@ section .data
 	read_only			equ	0
 	pixel_size			equ	1
 	;show messages
-	msg	db "Initial configure complete!!!",0x0a
-	len equ $ - msg  ;
+	msg		db "Initial configure complete!!!",0x0a
+	len 	equ $ - msg  ;
 	msg2	db "no salta!!!",0x0a
-	len2 equ $ - msg2  ;
+	len2 	equ $ - msg2  ;
 
 section .bss
-	fd_out				resb	4
-	fd_in 				resb	4
+	fd_out				resd	1
+	fd_in 				resd	1
 	pixel_value			resb	1	
 	img_index			resb	4
 	number1				resb 	1
 	number2				resb	1
-	numberTot			resb	2
+	numberTot			resb	4
 section .text
 
 	global _start
@@ -131,19 +131,14 @@ _start:
 	openFile	img_input_encrypted, read_only, fd_in
 
 	writeInConsole msg,len
-	writeFile				fd_out, msg, len
+	;writeFile				fd_out, msg, len
 	mov eax, 0
 	mov [img_index],eax
 	readNumber number1
-	readNumber number1
-	readNumber number1
-	readNumber number1
-	;readNumber number1
-	;readNumber number1
-	;readNumber number1
-	;readNumber number1
-	;readNumber number2
-
+	;writeFile				fd_out, number2, 1
+	readNumber number2
+	writeInConsole number2,4
+	writeFile				fd_out, number1, 1
 	closeFile	fd_in
 	closeFile	fd_out
 	exit
