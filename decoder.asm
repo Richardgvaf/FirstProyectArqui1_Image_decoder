@@ -36,9 +36,6 @@
 	mov		ecx, [%2]
 	mov		edx, %3
 	int		0x80
-	;mov 	ecx,[%2]
-	;add 	ecx,1
-	;mov 	[%2],ecx
 %endmacro
 
 %macro	closeFile 1
@@ -65,10 +62,7 @@
 	mov al,0
 	mov [%1],al
 %%read_number1:
-	mov al,[%1]
-	mov bl,10
-	mul bl
-	mov [%1],al
+
 	;*****************************this part will by a separate macro
 	updateFileDescriptor	fd_in, img_index, seek_set
 	readFile				fd_in, pixel_value, pixel_size
@@ -80,16 +74,21 @@
 
 	mov al,[pixel_value]
 	cmp al,32
-
-	
 	je %%end_read_number				; if is equal to blank space " " jumpt to the next number2
+
+
+	mov al,[%1]
+	mov bl,10
+	mul bl
+	mov [%1],al
+
 
 	mov al,[pixel_value]
 	sub al,'0'
 	add al,[%1]
 	mov [%1],al
-	writeInConsole 	%1,pixel_size
-	writeFile		fd_out, %1, 1
+	;writeInConsole 	%1,pixel_size
+	;writeFile		fd_out, %1, 1
 	jmp %%read_number1
 %%end_read_number:
 %endmacro
@@ -118,10 +117,12 @@ section .bss
 	fd_out				resd	1
 	fd_in 				resd	1
 	pixel_value			resb	1	
-	img_index			resb	4
+	img_index			resd	1
 	number1				resb 	1
+
 	number2				resb	1
-	numberTot			resb	4
+
+	numberTot			resw	4
 section .text
 
 	global _start
@@ -131,14 +132,23 @@ _start:
 	openFile	img_input_encrypted, read_only, fd_in
 
 	writeInConsole msg,len
-	;writeFile				fd_out, msg, len
 	mov eax, 0
 	mov [img_index],eax
+
+	;****************************************************************
+
+
+
+
+	;****************************************************************
+
+
 	readNumber number1
-	;writeFile				fd_out, number2, 1
-	readNumber number2
-	writeInConsole number2,4
+	writeInConsole number2,1
 	writeFile				fd_out, number1, 1
+	readNumber number2
+	writeInConsole number2,1
+	writeFile				fd_out, number2, 1
 	closeFile	fd_in
 	closeFile	fd_out
 	exit
