@@ -1,3 +1,10 @@
+;Extra information to solve
+;byte = 8 bits   	--->resb
+;word = 16 bits		--->resw
+;dword = 32 bits	--->resd
+;qword = 64	bits	--->resq
+
+
 %macro createFile 2				; file_name, file_descriptor
 	mov eax, sys_create
 	mov ebx, %1
@@ -87,11 +94,75 @@
 	sub al,'0'
 	add al,[%1]
 	mov [%1],al
-	;writeInConsole 	%1,pixel_size
-	;writeFile		fd_out, %1, 1
 	jmp %%read_number1
 %%end_read_number:
 %endmacro
+
+;*******************************************************************************************
+
+%macro DecodeNum 1
+	mov eax,0 
+	mov eax,[%1]						; eax <-- numberTot
+	mov [temp_num_tot],eax				; temp_num_tot <-- numberTot
+	mov eax,0							; eax <-- 0
+	mov [result_parcial],eax			; result_parcial <-- 0
+	mov eax,num_D 						; ax <-- num_D 
+	;shr ax,1
+	mov [temp_num_D],eax					; temp_num_D <-- num_D
+	
+	mov ax,num_D 						; ax <-- num_D
+	mov bx,1							; bx <-- 1
+	and ax,bx							; ax <-- ax and bx  ----> ax es: 1 si el ultimo bit es 1 o 0 si es 0
+	cmp ax,1							; compara si ax es 1 
+	jne %%parcialEqual1					; salta a result_parcial <-- 1 si es 0
+		mov eax,[temp_num_tot]				; ax <-- temp_num_tot
+		mov [result_parcial],eax				; result_parcial <-- temp_num_tot
+		jmp %%calc_cicle					; salta al ciclo
+	%%parcialEqual1:					; 
+		mov eax,1
+		mov [result_parcial],eax
+	%%calc_cicle:
+		;writeFile				fd_out, temp_num_tot, 4
+		mov eax,[temp_num_tot]				; eax <-- temp_num_tot
+		mov ebx,[temp_num_tot]
+		mul ebx							; eax <-- temp_num_tot * temp_num_tot
+		mov [temp_num_tot],eax
+		;writeFile				fd_out, temp_num_tot, 4
+		mov eax, [temp_num_tot]
+		mov ebx,num_N						; ebx <-- num_N
+		mov edx,0							; edx <-- 0
+		div ebx								; edx <-- (temp_num_tot^2) mod num_N
+		mov [temp_num_tot],edx				; temp_num_tot <-- (temp_num_tot^2) mod num_N
+		
+		mov ax,[temp_num_D]					;
+		shr ax,1
+		mov [temp_num_D],ax					;decrementa 1 temp_num_D
+		;writeFile				fd_out, result_parcial, 2
+		;writeFile				fd_out, msg2, len2
+		;mov ax,[temp_num_D]
+		mov bx,1
+		mov ax,[temp_num_D]
+		and ax,bx
+		cmp ax,1
+		jne %%next_calc
+			mov eax,[result_parcial]				; eax <-- result_parcial
+			mov ebx,[temp_num_tot]					; ebx <-- temp_num_tot
+			mul ebx									; eax <--  (result_parcial * temp_num_tot)
+			mov edx,0								; set 0 to the pos of module division
+			mov ebx,num_N 							; ebx <-- num_N
+			div ebx									; eax <-- eax//ebx;  edx <-- eax mod ebx
+			mov [result_parcial],edx				; (result_parcial*temp_num_tot) mod num_N
+	%%next_calc:
+		;writeFile fd_out,result_parcial,2
+		mov ax,[temp_num_D]							;mov ax
+		cmp ax,0
+		jne %%calc_cicle							;if temp_num_D  == 0 ends
+	
+	mov eax,[result_parcial]
+	mov [%1],eax
+%endmacro
+;*******************************************************************************************
+
 
 
 section .data
@@ -110,8 +181,12 @@ section .data
 	;show messages
 	msg		db "Initial configure complete!!!",0x0a
 	len 	equ $ - msg  ;
-	msg2	db "no salta!!!",0x0a
+	msg2	db " ",0x0a
 	len2 	equ $ - msg2  ;
+
+	num_D 				equ 3163
+	num_N				equ 3599
+
 
 section .bss
 	fd_out				resd	1
@@ -119,10 +194,12 @@ section .bss
 	pixel_value			resb	1	
 	img_index			resd	1
 	number1				resb 	1
-
 	number2				resb	1
+	numberTot			resd	1
 
-	numberTot			resw	4
+	temp_num_tot		resd	1
+	temp_num_D			resw	1
+	result_parcial		resd	1
 section .text
 
 	global _start
@@ -136,19 +213,27 @@ _start:
 	mov [img_index],eax
 
 	;****************************************************************
-
-
-
-
-	;****************************************************************
-
-
 	readNumber number1
-	writeInConsole number2,1
-	writeFile				fd_out, number1, 1
+	
 	readNumber number2
-	writeInConsole number2,1
-	writeFile				fd_out, number2, 1
+	
+	;****************************************************************
+	mov eax,0
+	mov eax,[number1]
+	shl eax,8
+	add eax,[number2]
+	mov [numberTot],eax
+	shl eax,16
+	shr eax,16
+	mov [numberTot],eax
+	writeFile fd_out,numberTot,4
+
+	DecodeNum numberTot
+	writeFile fd_out,numberTot,4
+
+	
+	
+
 	closeFile	fd_in
 	closeFile	fd_out
 	exit
