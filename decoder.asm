@@ -187,7 +187,8 @@ section .data
 	num_D 				equ 3163
 	num_N				equ 3599
 
-
+	rows 				equ 640
+	colums				equ 480			
 section .bss
 	fd_out				resd	1
 	fd_in 				resd	1
@@ -200,6 +201,7 @@ section .bss
 	temp_num_tot		resd	1
 	temp_num_D			resw	1
 	result_parcial		resd	1
+	cant_numbers_tot    resd 	1
 section .text
 
 	global _start
@@ -211,27 +213,45 @@ _start:
 	writeInConsole msg,len
 	mov eax, 0
 	mov [img_index],eax
+	mov eax,rows
+	mov ebx,colums
+	mul ebx
+	mov [cant_numbers_tot],eax
 
+Bucle:
 	;****************************************************************
+	mov eax,0
+	mov [numberTot],eax
+	mov al,0
+	mov [number1],al
+	mov [number2],al
 	readNumber number1
 	
 	readNumber number2
-	
 	;****************************************************************
+
+
 	mov eax,0
 	mov eax,[number1]
 	shl eax,8
 	add eax,[number2]
 	mov [numberTot],eax
+
+
 	shl eax,16
 	shr eax,16
+
+
 	mov [numberTot],eax
-	writeFile fd_out,numberTot,4
 
 	DecodeNum numberTot
 	writeFile fd_out,numberTot,4
 
-	
+	mov eax,[cant_numbers_tot]
+	dec eax
+	mov [cant_numbers_tot],eax
+	cmp eax,0
+	jne Bucle
 	
 
 	closeFile	fd_in

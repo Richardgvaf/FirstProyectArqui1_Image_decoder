@@ -17,6 +17,6 @@ def readBinary():
 			lista.append(x)
 		cont = (cont + 1)%4
 
-	print(lista)
+	return(lista)
 
 readBinary()
