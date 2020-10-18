@@ -1,2 +1,7 @@
 #!/bin/bash
-echo “Hola mundo”
+sudo rm files/output_decryption.txt
+sudo apt-get install nasm
+sudo nasm -f elf decoder.asm
+sudo ld -m elf_i386 -s -o decoder decoder.o
+sudo ./decoder
+python3 display.py
