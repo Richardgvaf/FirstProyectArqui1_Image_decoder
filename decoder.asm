@@ -230,7 +230,6 @@ Bucle:
 	readNumber number2
 	;****************************************************************
 
-
 	mov eax,0
 	mov eax,[number1]
 	shl eax,8
