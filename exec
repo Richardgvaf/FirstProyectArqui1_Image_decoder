@@ -1,11 +1,8 @@
 #!/bin/bash
-sudo rm files/output_decryption.txt
-sudo apt-get install nasm
+sudo rm files/OutputImage2.txt
 sudo apt-get install python3
 sudo apt-get install python3-numpy
 sudo python3 -m pip install -U pip
 sudo python3 -m pip install -U matplotlib
-sudo nasm -f elf decoder.asm
-sudo ld -m elf_i386 -s -o decoder decoder.o
-sudo ./decoder
+sudo python3 Testdecoder2.py
 python3 display.py
