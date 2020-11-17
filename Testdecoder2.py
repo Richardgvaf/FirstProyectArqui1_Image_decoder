@@ -22,7 +22,7 @@ def binarizar(decimal):
     return str(decimal) + binario
 
 def decoder(height,width,D,N):
-	input_image_file = open("files/Imagen.txt", "r")
+	input_image_file = open("files/9.txt", "r")
 	output_image_file = open("files/OutputImage2.txt","w")
 	data = input_image_file.read();
 	a = 0
@@ -38,5 +38,5 @@ def decoder(height,width,D,N):
 
 
 
-decoder(640,480,3163,3599)
+decoder(640,480,2077,6497)
 print("Complete")
